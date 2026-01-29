@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+
+<main>
+    <h1><%= title %></h1>
+
+    <div class="sorting-controls">
+        <p>Sort by: 
+            <a href="/faculty?sort=name">Name</a> | 
+            <a href="/faculty?sort=department">Department</a> | 
+            <a href="/faculty?sort=title">Title</a>
+        </p>
+    </div>
+
+    <section class="faculty-grid">
+        <% if (facultyArray && facultyArray.length > 0) { %>
+            <% facultyArray.forEach(member => { %>
+                <div class="faculty-card">
+                    <h2>
+                        <a href="/faculty/<%= member.id %>">
+                            <%= member.name %>
+                        </a>
+                    </h2>
+                    <p><strong><%= member.title %></strong></p>
+                    <p><%= member.department %></p>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No faculty members found.</p>
+        <% } %>
+    </section>
+</main>
+
+<%- include('../partials/footer') %>
