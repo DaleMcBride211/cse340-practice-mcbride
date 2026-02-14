@@ -1,0 +1,119 @@
+/* ==========================================
+   FACULTY SYSTEM STYLES
+   ========================================== */
+
+/* 1. Directory Layout & Controls */
+.faculty-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.sorting-controls {
+    margin: 20px 0;
+    padding: 12px;
+    background: var(--light-grey);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    
+    a {
+        text-decoration: none;
+        color: var(--primary-blue);
+        font-weight: bold;
+        &:hover { text-decoration: underline; }
+    }
+}
+
+/* 2. Faculty Directory Cards */
+.faculty-card {
+    background: white;
+    border: 1px solid var(--light-grey);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-3px);
+    }
+
+    h2 {
+        margin: 0 0 10px 0;
+        font-size: 1.25rem;
+        a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            &:hover { text-decoration: underline; }
+        }
+    }
+
+    p {
+        margin: 5px 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        
+        strong {
+            color: var(--dark-grey);
+        }
+    }
+}
+
+/* 3. Faculty Detail Page */
+.faculty-detail {
+    max-width: 800px;
+    margin: 0 auto;
+
+    .breadcrumb {
+        margin-bottom: 25px;
+        a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            &:hover { color: var(--primary-blue); }
+        }
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: var(--dark-grey);
+    }
+
+    /* Content Grouping */
+    .info-group, .contact-group {
+        background: white;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border: 1px solid var(--light-grey);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .contact-group {
+        border-top: 4px solid var(--primary-blue);
+        
+        h3 {
+            margin-top: 0;
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+        }
+    }
+
+    .info-group p, .contact-group p {
+        margin: 12px 0;
+        display: flex;
+        
+        strong {
+            min-width: 120px;
+            color: var(--dark-grey);
+        }
+
+        a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            &:hover { text-decoration: underline; }
+        }
+    }
+}

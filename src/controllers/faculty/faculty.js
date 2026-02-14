@@ -1,37 +1,42 @@
-import * as facultyModel from '../../models/faculty/faculty.js';
+import { getFacultyBySlug, getSortedFaculty } from '../../models/faculty/faculty.js';
 
 const facultyListPage = async (req, res) => {
-    // 1. Grab the sort parameter from the URL query string
-    const sortBy = req.query.sort;
+    const validSortOptions = ['name', 'department', 'title'];
+    const sortBy = validSortOptions.includes(req.query.sort) ? req.query.sort : 'department';
 
     // 2. Call your model function
-    const facultyArray = facultyModel.getSortedFaculty(sortBy);
+    const facultyArray = await getSortedFaculty(sortBy);
+
+  
 
     // 3. Render the list view and pass the data
     res.render('faculty/list', {
         title: 'Faculty Directory',
-        facultyArray // This is the array we just got from the model
+        facultyArray 
     });
 };
 
 const facultyDetailPage = async (req, res, next) => {
-    // 1. Grab the ID from the URL parameters
-    const facultyId = req.params.facultyId;
+    const facultySlug = req.params.facultySlug;
+    
 
-    // 2. Call your model function
-    const member = facultyModel.getFacultyById(facultyId);
+    const facultyMember = await getFacultyBySlug(facultySlug);
+    
 
     // 3. Error Handling: If the member doesn't exist, send it to the 404 handler
-    if (!member) {
-        const err = new Error('Faculty member not found');
+    if (!facultyMember || Object.keys(facultyMember).length === 0) {
+        const err = new Error(`Faculty member ${facultySlug} not found`);
         err.status = 404;
-        return next(err); // This skips to your error middleware
+        return next(err);
     }
+
+  
+
 
     // 4. If they DO exist, render the detail view
     res.render('faculty/detail', {
-        title: member.name,
-        member // Pass the single faculty object to the view
+        title: facultyMember.name,
+        member: facultyMember 
     });
 };
 

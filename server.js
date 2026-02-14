@@ -1,6 +1,9 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+import { setupDatabase, testConnection } from './src/models/setup.js';
 
 // 1. Import MVC components
 import routes from './src/controllers/routes.js';
@@ -46,6 +49,8 @@ app.use((err, req, res, next) => {
 // 6. WebSocket & Listen (Keep your existing code for these)
 // ... [Your WebSocket code here] ...
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+    await setupDatabase();
+    await testConnection();
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
