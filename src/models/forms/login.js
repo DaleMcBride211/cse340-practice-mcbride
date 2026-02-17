@@ -7,25 +7,24 @@ import db from '../db.js';
  * @returns {Promise<Object|null>} User object with password hash or null if not found
  */
 const findUserByEmail = async (email) => {
-    // TODO: Write SELECT query for id, name, email, password, created_at
-    // TODO: Use LOWER() on both sides for case-insensitive email comparison
-    // TODO: Use $1 placeholder for email parameter
-    // TODO: Add LIMIT 1 to ensure only one result
-    // TODO: Execute query and return first row or null
     const query = `
-    SELECT id, name, email, password, created_at
-    FROM users
-    WHERE LOWER(email) = LOWER($1)
-    LIMIT 1
+        SELECT 
+            users.id, 
+            users.name, 
+            users.email, 
+            users.password, 
+            users.created_at,
+            roles.role_name AS "roleName"
+        FROM users
+        INNER JOIN roles ON users.role_id = roles.id
+        WHERE LOWER(users.email) = LOWER($1)
+        LIMIT 1
     `;
-    try {
-        const result = await db.query(query, [email]);
-
-        return result.rows.length > 0 ? result.rows[0] : null;
-    } catch (error) {
-        console.error('Error finding user by email:', error);
-        throw error;
-    }
+    const result = await db.query(query, [email]);
+    console.log('--- DB Check ---');
+    console.log('Searching for email:', email);
+    console.log('User found in DB:', result.rows[0] ? 'YES' : 'NO');
+    return result.rows[0] || null;
 };
 /**
  * Verify a plain text password against a stored bcrypt hash.
@@ -39,7 +38,11 @@ const verifyPassword = async (plainPassword, hashedPassword) => {
     // TODO: Return the result (true/false)
 
     try {
+        console.log('--- Password Check ---');
+        console.log('Plain text provided:', plainPassword);
+        console.log('Hash from DB:', hashedPassword);
         const isMatch = await bcrypt.compare(plainPassword, hashedPassword);
+        console.log('Bcrypt Match:', isMatch);
         return isMatch;
     } catch (error) {
         console.error('Error verifying password:', error);

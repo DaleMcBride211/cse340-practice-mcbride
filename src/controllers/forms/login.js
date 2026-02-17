@@ -10,10 +10,14 @@ const loginValidation = [
         .trim()
         .isEmail()
         .withMessage('Please provide a valid email address')
+        .isLength({ max: 255 })
+        .withMessage('Email address is too long')
         .normalizeEmail(),
     body('password')
-        .isLength({ min: 8 })
+        .notEmpty()
         .withMessage('Password is required')
+        .isLength({ min: 8, max: 128 })
+        .withMessage('Password must be between 8 and 128 characters')
 ];
 /**
  * Display the login form.
@@ -34,7 +38,9 @@ const processLogin = async (req, res) => {
     if (!errors.isEmpty()) {
         // TODO: Log validation errors to console
         // TODO: Redirect back to /login
-        console.error('Login Errors', errors);
+        errors.array().forEach(error => {
+            req.flash('error', error.msg);
+        });
         return res.redirect('/login');
     }
     // TODO: Extract email and password from req.body
@@ -44,7 +50,7 @@ const processLogin = async (req, res) => {
         const user = await findUserByEmail(email);
         // TODO: If not found, log "User not found" and redirect to /login
         if (!user ) {
-            console.log('User not found');
+            req.flash('error', 'Invalid email or password');
             return res.redirect('/login');
         }
         // TODO: Verify password using verifyPassword(password, user.password)
@@ -53,7 +59,7 @@ const processLogin = async (req, res) => {
         
         // TODO: If password incorrect, log "Invalid password" and redirect to /login
         if (!isMatch) {
-            console.log('Invalid password');
+            req.flash('error', 'Invalid email or password');
             return res.redirect('/login');
         }
         // SECURITY: Remove password from user object before storing in session
@@ -67,7 +73,7 @@ const processLogin = async (req, res) => {
         // Model functions do not catch errors, so handle them here
         // TODO: Log error to console
         // TODO: Redirect to /login
-        console.error('Login Process Error:', error);
+        req.flash('error', error);
         return res.redirect('/login');
     }
 };
@@ -116,11 +122,12 @@ const showDashboard = (req, res) => {
     const sessionData = req.session;
     // Security check! Ensure user and sessionData do not contain password field
     if (user && user.password) {
-        console.error('Security error: password found in user object');
+        req.flash('error', 'Security error: password found in user object')
         delete user.password;
     }
     if (sessionData.user && sessionData.user.password) {
-        console.error('Security error: password found in sessionData.user');
+        
+        req.flash('error', 'Security error: password found in sessionData.user')
         delete sessionData.user.password;
     }
     // TODO: Render the dashboard view (dashboard)
