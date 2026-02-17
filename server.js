@@ -11,6 +11,8 @@ import { setupDatabase, testConnection } from './src/models/setup.js';
 
 import { startSessionCleanup } from './src/utils/session-cleanup.js';
 
+import flash from './src/middleware/flash.js';
+
 // 1. Import MVC components
 import routes from './src/controllers/routes.js';
 import { addLocalVariables } from './src/middleware/global.js';
@@ -50,6 +52,11 @@ app.use(session({
 }));
 
 startSessionCleanup();
+
+// Global middleware (sets res.locals variables)
+app.use(addLocalVariables);
+// Flash message middleware (must come after session and global middleware)
+app.use(flash);
 
 // 2. Configuration
 app.use(express.static(path.join(__dirname, 'public')));
