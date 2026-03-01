@@ -8,9 +8,7 @@ import connectPgSimple from 'connect-pg-simple';
 import { caCert } from './src/models/db.js';
 
 import { setupDatabase, testConnection } from './src/models/setup.js';
-
 import { startSessionCleanup } from './src/utils/session-cleanup.js';
-
 import flash from './src/middleware/flash.js';
 
 // 1. Import MVC components
@@ -19,19 +17,30 @@ import { addLocalVariables } from './src/middleware/global.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
+
+// Improved environment detection
+const NODE_ENV = process.env.NODE_ENV || 'development';
 const PORT = process.env.PORT || 3000;
 
 const app = express();
 
+/**
+ * RENDER FIX: Trust the proxy
+ * Render uses a reverse proxy to handle HTTPS. Without this, 
+ * Express will think the connection is insecure and refuse 
+ * to send the session cookie.
+ */
+app.set('trust proxy', 1);
+
 // Initialize PostgreSQL session store
 const pgSession = connectPgSimple(session);
+
 // Configure session middleware
 app.use(session({
     store: new pgSession({
         conObject: {
             connectionString: process.env.DB_URL,
-            // Configure SSL for session store connection (required by BYU-I databases)
+            // Configure SSL for session store connection
             ssl: {
                 ca: caCert,
                 rejectUnauthorized: true,
@@ -45,33 +54,35 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: NODE_ENV.includes('dev') !== true,
+        // Only use secure cookies in production (HTTPS)
+        secure: NODE_ENV === 'production', 
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'lax' // Helps ensure flash messages persist across redirects
     }
 }));
 
 startSessionCleanup();
 
-// Global middleware (sets res.locals variables)
-app.use(addLocalVariables);
-// Flash message middleware (must come after session and global middleware)
-app.use(flash);
-
-// 2. Configuration
+// --- Middleware Stack Order Matters ---
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Flash must come AFTER session
+app.use(flash);
+
+// Global variables must come AFTER flash (so res.locals.flash works)
+app.use(addLocalVariables);
+
+// 2. Configuration
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src/views'));
 
-// 3. Apply Global Middleware
-app.use(addLocalVariables);
-
-// 4. Apply Routes
+// 3. Apply Routes
 app.use('/', routes);
 
-// 5. Error Handlers (Keep these here for now)
+// 4. Error Handlers
 app.use((req, res, next) => {
     const err = new Error('Page Not Found');
     err.status = 404;
@@ -90,11 +101,8 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 6. WebSocket & Listen (Keep your existing code for these)
-// ... [Your WebSocket code here] ...
-
 app.listen(PORT, async () => {
     await setupDatabase();
     await testConnection();
-    console.log(`Server is running on http://127.0.0.1:${PORT}`);
+    console.log(`Server is running on port: ${PORT}`);
 });
